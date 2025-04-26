@@ -14,7 +14,30 @@ import {
   type TwoslashExecuteOptions,
   type TwoslashReturn,
 } from 'twoslash';
-import type { TwoslashTypesCache } from '@/cache-fs';
+
+type Awaitable<T> = T | Promise<T>;
+
+export interface TwoslashTypesCache {
+  /**
+   * Read cached result
+   *
+   * @param code Source code
+   */
+  read: (code: string) => Awaitable<TwoslashReturn | null>;
+
+  /**
+   * Save result to cache
+   *
+   * @param code Source code
+   * @param data Twoslash data
+   */
+  write: (code: string, data: TwoslashReturn) => Awaitable<void>;
+
+  /**
+   * On initialization
+   */
+  init?: () => Awaitable<void>;
+}
 
 export interface TransformerTwoslashOptions
   extends TransformerTwoslashIndexOptions {
@@ -31,22 +54,27 @@ export function transformerTwoslash({
   const defaultTwoslasher = createTwoslasher(options.twoslashOptions);
 
   let twoslasher = defaultTwoslasher;
+  let init = false;
   // Wrap twoslasher with cache when `resultCache` is provided
   if (typesCache) {
-    twoslasher = ((
+    twoslasher = (async (
       code: string,
       extension?: string,
       options?: TwoslashExecuteOptions,
-    ): TwoslashReturn => {
-      const cached = typesCache.read(code); // Restore cache
+    ): Promise<TwoslashReturn> => {
+      if (!init) {
+        await typesCache.init?.();
+        init = true;
+      }
+
+      const cached = await typesCache.read(code); // Restore cache
       if (cached) return cached;
 
       const twoslashResult = defaultTwoslasher(code, extension, options);
-      typesCache.write(code, twoslashResult);
+      await typesCache.write(code, twoslashResult);
       return twoslashResult;
-    }) as typeof defaultTwoslasher;
+    }) as unknown as typeof defaultTwoslasher;
     twoslasher.getCacheMap = defaultTwoslasher.getCacheMap;
-    typesCache?.init?.();
   }
 
   const renderer = rendererRich({

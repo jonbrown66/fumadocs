@@ -25,6 +25,10 @@
     "./cache-fs": {
       "import": "./dist/cache-fs.js",
       "types": "./dist/cache-fs.d.ts"
+    },
+    "./cache-next": {
+      "import": "./dist/cache-next.js",
+      "types": "./dist/cache-next.d.ts"
     }
   },
   "main": "./dist/index.js",
@@ -56,13 +60,20 @@
     "@types/react": "^19.1.2",
     "eslint-config-custom": "workspace:*",
     "fumadocs-ui": "workspace:*",
+    "next": "^15.3.1",
     "shiki": "^3.3.0",
     "tsconfig": "workspace:*"
   },
   "peerDependencies": {
+    "next": "15.x.x",
     "fumadocs-ui": "^15.0.0",
     "react": "18.x.x || 19.x.x",
     "shiki": "1.x.x || 2.x.x || 3.x.x"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"

@@ -17,6 +17,7 @@ import {
   remarkSteps,
 } from 'fumadocs-core/mdx-plugins';
 import { remarkAutoTypeTable } from 'fumadocs-typescript';
+import { createNextTypesCache } from 'fumadocs-twoslash/cache-next';
 
 export const docs = defineDocs({
   docs: {
@@ -61,7 +62,10 @@ export default defineConfig({
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
         transformerTwoslash({
-          typesCache: createFileSystemTypesCache(),
+          typesCache:
+            process.env.NODE_ENV === 'production'
+              ? createNextTypesCache()
+              : createFileSystemTypesCache(),
         }),
         {
           name: 'transformers:remove-notation-escape',
